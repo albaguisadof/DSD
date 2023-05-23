@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>Sistema domótico</title>
+        <script src="/socket.io/socket.io.js"></script>
+        <link rel="stylesheet" href="estilo.css">
+    </head>
+    <body>
+        <h1>Sistema domótico : Usuarios</h1>
+        <div id="sensores">
+            <h2>Valor de los sensores</h2>
+            <p>Temperatura: <span id="temperatura"></span></p>
+            <p>Iluminación: <span id="luminosidad"></span></p>
+        </div>
+        <div id="estado">
+            <h2>Estado del sistema</h2>
+            <p>Estado de la persiana: <span id="persiana"></span></p>
+            <button id="botonPersiana" >Cerrar Persiana</button>
+            <p>Estado del aire acondicionado: <span id="AC"></span></p>
+            <button id="botonAC" >Encender A/C</button>
+        </div>
+        <div id="alarmas"></div>
+
+        <script type="text/javascript">
+        
+            var serviceURL = document.URL;
+            var socket = io.connect(serviceURL);
+
+            //Variables de estado
+            var luz = "Sin registrar";
+            var temp = "Sin registrar";
+            var persiana = "Subida";
+            var AC = "Apagado";
+      
+            //Registramos cambios en el estado de las persianas y el AC
+            var botonPersiana= document.getElementById("botonPersiana");
+            var botonAC = document.getElementById("botonAC");
+      
+            botonPersiana.addEventListener("click", enviarPersiana);
+            botonAC.addEventListener("click", enviarAC);
+      
+            function enviarPersiana(event) {
+                event.preventDefault(); 
+                var p = botonPersiana.innerText;
+                var d = new Date();
+
+                if(p == "Cerrar Persiana"){
+                    botonPersiana.innerText = "Abrir Persiana";
+                    socket.emit('addPersiana', {persiana: "Bajada", time: d});
+                }else{
+                    botonPersiana.innerText = "Cerrar Persiana";
+                    socket.emit('addPersiana', {persiana: "Subida", time: d});
+                }
+            }
+      
+            function enviarAC(event) {
+                event.preventDefault(); 
+                var ac = botonAC.innerText;
+                var d = new Date();
+
+                if(ac == "Encender A/C"){
+                    botonAC.innerText = "Apagar A/C";
+                    socket.emit('addAC', {AC: "Encendido", time: d});
+                }else{
+                    botonAC.innerText = "Encender A/C";
+                    socket.emit('addAC', {AC: "Apagado", time: d});
+                }
+            }
+
+            
+
+            //Actualizamos las variables de estado y las añadimos a la interfaz de nuestro sistema
+            function actualizar(data){
+                if(data['temperatura']){
+                    temp = data['temperatura'];
+                    document.getElementById("temperatura").textContent = temp;
+                };
+
+                if(data['luminosidad']){
+                    luz = data['luminosidad'];
+                    document.getElementById("luminosidad").textContent = luz;
+                };
+
+                if(data['persiana']){
+                    persiana = data['persiana'];
+                    document.getElementById("persiana").textContent = persiana;
+                    if(persiana == "Bajada"){
+                        botonPersiana.innerText = "Abrir Persiana";
+                    }else{
+                        botonPersiana.innerText = "Cerrar Persiana";
+                    }
+                }
+
+                if(data['AC']){
+                    AC = data['AC'];
+                    document.getElementById("AC").textContent = AC;
+                    if(AC == "Encendido"){
+                        botonAC.innerText = "Apagar A/C";
+                    }else{
+                        botonAC.innerText = "Encender A/C";
+                    }
+                }
+            }
+
+            socket.on('actualizar', function(data) {
+                actualizar(data);
+            })
+        </script>
+    </body>
+</html>
+
+
+      

@@ -1,0 +1,59 @@
+      /* Estilos para el cuerpo */
+      body {
+        font-family: sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+
+      /* Estilos para el encabezado */
+      h1 {
+        background-color: rosybrown;
+        color: #fff;
+        margin: 0;
+        padding: 1em;
+        text-align: center;
+      }
+
+      /* Estilos para los contenedores */
+      div {
+        display: flex;
+        flex-direction: column;
+        margin: 1em;
+      }
+
+      /* Estilos para las etiquetas */
+      label {
+        font-weight: bold;
+      }
+
+      /* Estilos para los campos de entrada */
+      input {
+        padding: 0.5em;
+      }
+
+      /* Estilos para el botón */
+      button {
+        background-color: rosybrown;
+        border: none;
+        color: #fff;
+        cursor: pointer;
+        padding: 0.5em;
+      }
+
+      /* Estilos para las líneas horizontales */
+      hr {
+        border: none;
+        border-top: 1px solid #ccc;
+        margin: 1em;
+      }
+
+      /* Estilos para las etiquetas de estado */
+      p {
+        font-weight: bold;
+      }
+
+
+      /* Estilos para los valores de estado */
+      span {
+        font-weight: normal;
+      }
