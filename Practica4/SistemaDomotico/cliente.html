@@ -7,11 +7,13 @@
         <link rel="stylesheet" href="estilo.css">
     </head>
     <body>
-        <h1>Sistema domótico : Usuarios</h1>
+        <h1>Sistema domótico</h1>
         <div id="sensores">
-            <h2>Valor de los sensores</h2>
+            <h2>El tiempo en Granada</h2>
             <p>Temperatura: <span id="temperatura"></span></p>
             <p>Iluminación: <span id="luminosidad"></span></p>
+            <p>Porcentaje precipitaciones: <span id="precipitaciones"></span></p>
+            <p>Viento: <span id="viento"></span></p>
         </div>
         <div id="estado">
             <h2>Estado del sistema</h2>
@@ -19,8 +21,15 @@
             <button id="botonPersiana" >Cerrar Persiana</button>
             <p>Estado del aire acondicionado: <span id="AC"></span></p>
             <button id="botonAC" >Encender A/C</button>
+            <p>Estado de la calefaccion: <span id="calefaccion"></span></p>
+            <button id="botonCalefaccion" >Encender calefaccion</button>
+            <p>Estado de las ventanas: <span id="ventana"></span></p>
+            <button id="botonVentana" >Abrir ventana</button>
         </div>
-        <div id="alarmas"></div>
+        <div id="alarmas">
+            <h2>Alarmas</h2>
+            <ul id="listaAlarmas"></ul>
+        </div>
 
         <script type="text/javascript">
         
@@ -30,15 +39,23 @@
             //Variables de estado
             var luz = "Sin registrar";
             var temp = "Sin registrar";
+            var precipitaciones = "Sin registrar";
+            var viento = "Sin registrar";
             var persiana = "Subida";
             var AC = "Apagado";
+            var calefaccion = "Apagado";
+            var ventana = "Cerrada";
       
-            //Registramos cambios en el estado de las persianas y el AC
+            //Registramos cambios en el estado d
             var botonPersiana= document.getElementById("botonPersiana");
             var botonAC = document.getElementById("botonAC");
+            var botonCalefaccion = document.getElementById("botonCalefaccion");
+            var botonVentana = document.getElementById("botonVentana");
       
             botonPersiana.addEventListener("click", enviarPersiana);
             botonAC.addEventListener("click", enviarAC);
+            botonCalefaccion.addEventListener("click", enviarCalefaccion);
+            botonVentana.addEventListener("click", enviarVentana);
       
             function enviarPersiana(event) {
                 event.preventDefault(); 
@@ -68,23 +85,61 @@
                 }
             }
 
+            function enviarCalefaccion(event) {
+                event.preventDefault(); 
+                var ca = botonCalefaccion.innerText;
+                var d = new Date();
+
+                if(ca == "Encender calefaccion"){
+                    botonCalefaccion.innerText = "Apagar calefaccion";
+                    socket.emit('addCalefaccion', {calefaccion: "Encendido", time: d});
+                }else{
+                    botonCalefaccion.innerText = "Encender calefaccion";
+                    socket.emit('addCalefaccion', {calefaccion: "Apagado", time: d});
+                }
+            }
+
+            function enviarVentana(event) {
+                event.preventDefault(); 
+                var v = botonVentana.innerText;
+                var d = new Date();
+
+                if(v == "Abrir ventana"){
+                    botonVentana.innerText = "Cerrar ventana";
+                    socket.emit('addVentana', {ventana: "Abierta", time: d});
+                }else{
+                    botonVentana.innerText = "Abrir ventana";
+                    socket.emit('addVentana', {ventana: "Cerrada", time: d});
+                }
+            }
+
             
 
             //Actualizamos las variables de estado y las añadimos a la interfaz de nuestro sistema
             function actualizar(data){
                 if(data['temperatura']){
                     temp = data['temperatura'];
-                    document.getElementById("temperatura").textContent = temp;
+                    document.getElementById("temperatura").innerHTML = temp;
                 };
 
                 if(data['luminosidad']){
                     luz = data['luminosidad'];
-                    document.getElementById("luminosidad").textContent = luz;
+                    document.getElementById("luminosidad").innerHTML = luz;
+                };
+
+                if(data['viento']){
+                    viento = data['viento'];
+                    document.getElementById("viento").innerHTML = viento;
+                };
+
+                if(data['precipitaciones']){
+                    precipitaciones = data['precipitaciones'];
+                    document.getElementById("precipitaciones").innerHTML = precipitaciones;
                 };
 
                 if(data['persiana']){
                     persiana = data['persiana'];
-                    document.getElementById("persiana").textContent = persiana;
+                    document.getElementById("persiana").innerHTML = persiana;
                     if(persiana == "Bajada"){
                         botonPersiana.innerText = "Abrir Persiana";
                     }else{
@@ -94,18 +149,57 @@
 
                 if(data['AC']){
                     AC = data['AC'];
-                    document.getElementById("AC").textContent = AC;
+                    document.getElementById("AC").innerHTML = AC;
                     if(AC == "Encendido"){
                         botonAC.innerText = "Apagar A/C";
                     }else{
                         botonAC.innerText = "Encender A/C";
                     }
                 }
+
+                if(data['calefaccion']){
+                    calefaccion = data['calefaccion'];
+                    document.getElementById("calefaccion").innerHTML = calefaccion;
+                    if(calefaccion == "Encendido"){
+                        botonCalefaccion.innerText = "Apagar calefaccion";
+                    }else{
+                        botonCalefaccion.innerText = "Encender calefaccion";
+                    }
+                }
+
+                if(data['ventana']){
+                    ventana = data['ventana'];
+                    document.getElementById("ventana").innerHTML = ventana;
+                    if(ventana == "Abierta"){
+                        botonVentana.innerText = "Cerrar ventana";
+                    }else{
+                        botonVentana.innerText = "Abrir ventana";
+                    }
+                }
             }
 
-            socket.on('actualizar', function(data) {
+            //Añadimos las alarmas
+            function addAlarma(datos) {
+                var item = document.createElement('li');
+                item.innerHTML = JSON.stringify(datos);
+                document.getElementById("listaAlarmas").appendChild(item);
+                console.log("alarmaRecibida");
+            }
+
+            socket.on('alarma', function(data){
+                addAlarma(data);
+            });
+
+            socket.on('actualizarSistema', function(data) {
                 actualizar(data);
             })
+
+            //Cargamos los datos al iniciar el sistema
+            socket.emit('cargarDatos');
+
+            //Actualizamos los datos cada 2 min
+            setInterval(socket.emit('cargarDatos'), 120000);
+
         </script>
     </body>
 </html>
